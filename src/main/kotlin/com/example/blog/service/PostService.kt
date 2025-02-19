@@ -125,6 +125,7 @@ class PostService(
 
     private fun toPostResponse(post:Post) : PostResponse{
         return PostResponse(
+            postId = post.postId,
             username = post.user.username,
             title = post.title,
             content = post.content,
