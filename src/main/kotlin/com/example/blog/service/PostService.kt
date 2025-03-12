@@ -7,9 +7,7 @@ import com.example.blog.repository.PostRepository
 import com.example.blog.repository.UserRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Service
-import java.util.*
 import java.util.Collections.emptyList
 
 @Service
@@ -19,25 +17,33 @@ class PostService(
     private val tokenService: TokenService
 ) {
 
-    fun getAllPosts(): List<PostResponse> {
+    suspend fun getAllPosts(): List<PostResponse> {
         val posts = postRepository.findAll()
         return posts.map{post -> toPostResponse(post)}
     }
 
-    fun getAllUserPosts(username: String): List<PostResponse> {
+    suspend fun getAllUserPosts(username: String): List<PostResponse> {
         val existingUser = userRepository.findByUsername(username)
+        println("existinguser:$existingUser")
         if (existingUser != null) {
             val posts = postRepository.findByUser(existingUser)
+            println("posts:$posts")
             return posts.map{post -> toPostResponse(post)}
         }
+        println("no posts")
         return emptyList()
     }
 
-    fun createPost(post: PostDto, token: String): ResponseEntity<String> {
+    suspend fun createPost(post: PostDto, token: String): ResponseEntity<String> {
         val username = extractUsernameFromToken(token)
         if (username.isNullOrBlank() || !tokenService.isValid(token, username)) {
             println("Invalid or expired token for username:$username")
             return ResponseEntity("Invalid or expired token", HttpStatus.UNAUTHORIZED)
+        }
+
+        if(username != post.username){
+            println("Token is valid,but the username sent though post is not matching")
+            return ResponseEntity("post user is not authorised to create a post",HttpStatus.UNAUTHORIZED)
         }
 
         val user = userRepository.findByUsername(username)
@@ -61,7 +67,7 @@ class PostService(
         return ResponseEntity("Post created successfully", HttpStatus.OK)
     }
 
-    fun updatePost(id: Long, post: PostDto, token: String): ResponseEntity<String> {
+    suspend fun updatePost(id: Long, post: PostDto, token: String): ResponseEntity<String> {
         val username = extractUsernameFromToken(token)
         if (username == null || !tokenService.isValid(token, username)) {
             return ResponseEntity("Invalid or expired token", HttpStatus.UNAUTHORIZED)
@@ -86,7 +92,7 @@ class PostService(
         }
     }
 
-    fun deletePost(id: Long, token: String): ResponseEntity<String> {
+    suspend fun deletePost(id: Long, token: String): ResponseEntity<String> {
         val username = extractUsernameFromToken(token)
         if (username == null || !tokenService.isValid(token, username)) {
             println("Invalid or expired token for user:$username")
@@ -96,6 +102,8 @@ class PostService(
         val post = postRepository.findById(id)
         if (post.isPresent) {
             val postToDelete = post.get()
+
+            println("Post Owner: ${postToDelete.user.username}, Current User: $username")
 
             println("Checking if user ${username} is authorized to delete post by ${postToDelete.user.username}")
             if (postToDelete.user.username != username) {
@@ -112,18 +120,18 @@ class PostService(
         }
     }
 
-    private fun extractUsernameFromToken(token: String): String? {
+    fun extractUsernameFromToken(token: String): String? {
         return try {
             val email=tokenService.extractEmail(token)
             println("Extracted username:$email")
             email
         } catch (e: Exception) {
-            println("Error extracting ysername:${e.message}")
+            println("Error extracting username:${e.message}")
             null
         }
     }
 
-    private fun toPostResponse(post:Post) : PostResponse{
+    fun toPostResponse(post:Post) : PostResponse{
         return PostResponse(
             postId = post.postId,
             username = post.user.username,

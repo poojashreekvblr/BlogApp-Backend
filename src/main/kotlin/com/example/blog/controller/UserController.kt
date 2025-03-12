@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.*
 class UserController(private val userService: UserService) {
 
     @PostMapping("/register")
-    fun register(@RequestBody user : User) : ResponseEntity<String> = userService.signUp(user)
+    suspend fun register(@RequestBody user : User) : ResponseEntity<String> = userService.signUp(user)
 
     @PostMapping("/login")
-    fun login(@RequestBody user:AuthenticationRequest) : ResponseEntity<Any> = userService.login(user)
+    suspend fun login(@RequestBody user:AuthenticationRequest) : ResponseEntity<Any> = userService.login(user)
 }
