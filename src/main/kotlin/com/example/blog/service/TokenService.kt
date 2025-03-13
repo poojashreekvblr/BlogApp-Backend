@@ -20,16 +20,26 @@ class TokenService(
     fun generate(
         userDetails: UserDetails,
         expirationDate: Date,
-    ): String =
-        Jwts.builder()
+    ): String {
+        // Get roles from user details and convert to a comma-separated string
+        val authorities = userDetails.authorities.map { it.authority }
+
+        return Jwts.builder()
             .setSubject(userDetails.username)
+            .claim("roles", authorities) // Add roles to the JWT token
             .setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(expirationDate)
-            .signWith(secretKey,SignatureAlgorithm.HS256)
+            .signWith(secretKey, SignatureAlgorithm.HS256)
             .compact()
+    }
 
     fun extractEmail(token: String): String? =
         getAllClaims(token).subject
+
+    fun extractRoles(token: String): List<String> {
+        val rolesClaim = getAllClaims(token).get("roles", List::class.java)
+        return rolesClaim as List<String>
+    }
 
     fun isExpired(token: String): Boolean =
         getAllClaims(token).expiration.before(Date(System.currentTimeMillis()))
@@ -50,5 +60,4 @@ class TokenService(
             throw IllegalArgumentException("Invalid JWT token", e)
         }
     }
-
 }

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -24,25 +25,50 @@ class JwtAuthenticationFilter(
     ) {
         val authHeader: String? = request.getHeader("Authorization")
 
-        if(authHeader.isNullOrBlank() || !authHeader.startsWith("Bearer ")){
-            filterChain.doFilter(request,response)
+        if (authHeader.isNullOrBlank() || !authHeader.startsWith("Bearer ")) {
+            println("Authorization header missing or invalid")
+            filterChain.doFilter(request, response)
             return
         }
 
         val jwtToken = authHeader.substringAfter("Bearer ")
+        println("JWT Token extracted: $jwtToken")
         val email = tokenService.extractEmail(jwtToken)
 
         if (email != null && SecurityContextHolder.getContext().authentication == null) {
-            val foundUser = userDetailsService.loadUserByUsername(email)
+            println("Extracted username from token: $email")
+            try {
+                val foundUser = userDetailsService.loadUserByUsername(email)
 
-            if (tokenService.isValid(jwtToken, foundUser.username)) {
-                val authorities = foundUser.authorities;
-                val authToken = UsernamePasswordAuthenticationToken(foundUser, null,authorities)
-                authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
-                SecurityContextHolder.getContext().authentication = authToken
+                if (tokenService.isValid(jwtToken, foundUser.username)) {
+                    val authorities = getAuthoritiesFromToken(jwtToken)
+                    println("Authorities:$authorities")
+
+                    val authToken = UsernamePasswordAuthenticationToken(foundUser, null, authorities)
+                    authToken.details = WebAuthenticationDetailsSource().buildDetails(request)
+
+                    println("Before setting authentication, SecurityContextHolder: ${SecurityContextHolder.getContext().authentication}")
+                    SecurityContextHolder.getContext().authentication = authToken
+                    println("After setting authentication, SecurityContextHolder: ${SecurityContextHolder.getContext().authentication}")
+                    println("Authentication set for user: $email")
+                } else {
+                    println("Invalid or expired token for user: $email")
+                    response.status = HttpServletResponse.SC_UNAUTHORIZED
+                    return
+                }
+            } catch (e: Exception) {
+                println("Error processing JWT authentication: $e")
+                response.status = HttpServletResponse.SC_UNAUTHORIZED
+                return
             }
         }
 
         filterChain.doFilter(request, response)
     }
+
+    private fun getAuthoritiesFromToken(token: String): Collection<SimpleGrantedAuthority> {
+        val roles = tokenService.extractRoles(token)
+        return roles.map { SimpleGrantedAuthority(it) }
+    }
 }
+
