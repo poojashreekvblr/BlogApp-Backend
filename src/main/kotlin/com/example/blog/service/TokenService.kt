@@ -21,12 +21,11 @@ class TokenService(
         userDetails: UserDetails,
         expirationDate: Date,
     ): String {
-        // Get roles from user details and convert to a comma-separated string
         val authorities = userDetails.authorities.map { it.authority }
 
         return Jwts.builder()
             .setSubject(userDetails.username)
-            .claim("roles", authorities) // Add roles to the JWT token
+            .claim("roles", authorities)
             .setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(expirationDate)
             .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -37,8 +36,13 @@ class TokenService(
         getAllClaims(token).subject
 
     fun extractRoles(token: String): List<String> {
-        val rolesClaim = getAllClaims(token).get("roles", List::class.java)
-        return rolesClaim as List<String>
+        try {
+            val rolesClaim = getAllClaims(token).get("roles", List::class.java)
+            return rolesClaim?.let { it as List<String> } ?: emptyList()
+        }catch(e:Exception){
+            println("Error extracting roles:${e.message}")
+            return emptyList()
+        }
     }
 
     fun isExpired(token: String): Boolean =

@@ -4,6 +4,8 @@ import com.example.blog.Dto.PostDto
 import com.example.blog.Dto.PostResponse
 import com.example.blog.service.PostService
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -21,20 +23,17 @@ class PostController(private val postService: PostService) {
     }
 
     @PostMapping
-    suspend fun createPost(@RequestBody post: PostDto, @RequestHeader("Authorization") token: String): ResponseEntity<String> {
-        val cleanedToken = token.replace("Bearer ", "")
-        return postService.createPost(post, cleanedToken)
+    suspend fun createPost(@RequestBody post: PostDto, @AuthenticationPrincipal userDetails: UserDetails): ResponseEntity<String> {
+        return postService.createPost(post, userDetails.username)
     }
 
     @PutMapping("/update/{id}")
-    suspend fun updatePost(@PathVariable id: Long, @RequestBody post: PostDto, @RequestHeader("Authorization") token: String): ResponseEntity<String> {
-        val cleanedToken = token.replace("Bearer ", "")
-        return postService.updatePost(id, post, cleanedToken)
+    suspend fun updatePost(@PathVariable id: Long, @RequestBody post: PostDto, @AuthenticationPrincipal userDetails: UserDetails): ResponseEntity<String> {
+        return postService.updatePost(id,post, userDetails.username)
     }
 
     @DeleteMapping("/delete/{id}")
-    suspend fun deletePost(@PathVariable id: Long, @RequestHeader("Authorization") token: String): ResponseEntity<String> {
-        val cleanedToken = token.replace("Bearer ", "")
-        return postService.deletePost(id, cleanedToken)
+    suspend fun deletePost(@PathVariable id: Long, @AuthenticationPrincipal userDetails: UserDetails): ResponseEntity<String> {
+        return postService.deletePost(id,userDetails.username)
     }
 }
