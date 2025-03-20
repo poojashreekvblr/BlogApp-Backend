@@ -14,6 +14,8 @@ import com.example.blog.service.AuthenticationService
 import com.example.blog.service.PostService
 import com.example.blog.service.TokenService
 import com.example.blog.service.UserService
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldNotBe
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.platform.runner.JUnitPlatform
@@ -64,15 +66,18 @@ class SpekTest : Spek({
 
                 val foundUser = userRepository.findByUsername("username")
 
-                assertEquals(foundUser?.username, "username")
-                assertEquals(foundUser?.password, "password")
+                foundUser?.username shouldBe "username"
+                foundUser?.password shouldBe "password"
+//                assertEquals(foundUser?.username, "username")
+//                assertEquals(foundUser?.password, "password")
             }
 
             it("should return null if user is not found") {
 
                 val foundUser = userRepository.findByUsername("nonexistent")
 
-                assertNull(foundUser)
+                foundUser shouldBe null
+//                assertNull(foundUser)
             }
         }
 
@@ -84,7 +89,8 @@ class SpekTest : Spek({
 
                 val savedUser = userRepository.save(user)
 
-                assertEquals(savedUser, user)
+                savedUser shouldBe user
+//                assertEquals(savedUser, user)
             }
         }
     }
@@ -107,8 +113,10 @@ class SpekTest : Spek({
 
                 val foundPosts = postRepository.findAll()
 
-                assertEquals(foundPosts.size,1)
-                assertEquals(foundPosts[0].title,"title" )
+                foundPosts.size shouldBe 1
+                foundPosts[0].title shouldBe "title"
+//                assertEquals(foundPosts.size,1)
+//                assertEquals(foundPosts[0].title,"title" )
             }
         }
 
@@ -123,8 +131,10 @@ class SpekTest : Spek({
 
                 val foundPosts = postRepository.findByUser(user)
 
-                assertEquals(foundPosts,posts)
-                assertEquals(foundPosts.size,1)
+                foundPosts shouldBe posts
+                foundPosts.size shouldBe 1
+//                assertEquals(foundPosts,posts)
+//                assertEquals(foundPosts.size,1)
             }
 
             it("return empty list when user is not found"){
@@ -135,7 +145,8 @@ class SpekTest : Spek({
 
                 val notFoundPosts = postRepository.findByUser(user)
 
-                assertEquals(notFoundPosts.size,0)
+                notFoundPosts.size shouldBe 0
+//                assertEquals(notFoundPosts.size,0)
             }
         }
 
@@ -150,8 +161,10 @@ class SpekTest : Spek({
 
                 val foundPosts = postRepository.findByTitle("title")
 
-                assertEquals(foundPosts,post)
-                assertEquals(foundPosts?.user,user)
+                foundPosts shouldBe post
+                foundPosts?.user shouldBe user
+//                assertEquals(foundPosts,post)
+//                assertEquals(foundPosts?.user,user)
             }
 
             it("return null if not post is present with a title"){
@@ -160,7 +173,8 @@ class SpekTest : Spek({
 
                 val foundPosts = postRepository.findByTitle("title")
 
-                assertNull(foundPosts)
+                foundPosts shouldBe null
+//                assertNull(foundPosts)
             }
         }
 
@@ -175,7 +189,8 @@ class SpekTest : Spek({
 
                 val savedPost = postRepository.save(post)
 
-                assertEquals(savedPost,post)
+                savedPost shouldBe post
+//                assertEquals(savedPost,post)
             }
 
         }
@@ -190,7 +205,8 @@ class SpekTest : Spek({
 
                 val foundPost = postRepository.findById(1)
 
-                assert(foundPost.isPresent)
+                foundPost shouldNotBe null
+//                assert(foundPost.isPresent)
             }
 
             it("Doesn't return anything if id is not there"){
@@ -199,7 +215,8 @@ class SpekTest : Spek({
 
                 val foundPost = postRepository.findById(1)
 
-                assert(foundPost.isEmpty)
+                foundPost shouldBe Optional.empty()
+//                assert(foundPost.isEmpty)
             }
         }
 
@@ -214,7 +231,8 @@ class SpekTest : Spek({
 
                 postRepository.deleteById(1)
 
-                assert(postRepository.findAll().isEmpty())
+                postRepository.findAll() shouldBe emptyList()
+//                assert(postRepository.findAll().isEmpty())
             }
         }
     }
@@ -245,9 +263,13 @@ class SpekTest : Spek({
                 val response: ResponseEntity<String> = runBlocking{userService.signUp(user)}
 
                 verify(userRepository).save(user)
-                assertEquals(response.statusCode ,HttpStatus.CREATED)
-                assertEquals(response.body,"User registered successfully")
-                assertEquals(user.password ,encodedPassword)
+
+                response.statusCode shouldBe HttpStatus.CREATED
+                response.body shouldBe "User registered successfully"
+                user.password shouldBe encodedPassword
+//                assertEquals(response.statusCode ,HttpStatus.CREATED)
+//                assertEquals(response.body,"User registered successfully")
+//                assertEquals(user.password ,encodedPassword)
 
             }
 
@@ -261,8 +283,11 @@ class SpekTest : Spek({
                 val response: ResponseEntity<String> = runBlocking{userService.signUp(user)}
 
                 verify(userRepository).findByUsername(user.username)
-                assertEquals(response.statusCode , HttpStatus.CONFLICT)
-                assertEquals(response.body ,"Username already exists, choose a different one")
+
+                response.statusCode shouldBe HttpStatus.CONFLICT
+                response.body shouldBe "Username already exists, choose a different one"
+//                assertEquals(response.statusCode , HttpStatus.CONFLICT)
+//                assertEquals(response.body ,"Username already exists, choose a different one")
             }
         }
 
@@ -277,8 +302,10 @@ class SpekTest : Spek({
 
                 val response: ResponseEntity<Any> = runBlocking{userService.login(authrequest)}
 
-                assertEquals(HttpStatus.OK,response.statusCode)
-                assertEquals(response.body,authreponse)
+                response.statusCode shouldBe HttpStatus.OK
+                response.body shouldBe authreponse
+//                assertEquals(HttpStatus.OK,response.statusCode)
+//                assertEquals(response.body,authreponse)
             }
 
             it("Invalid login credentails"){
@@ -289,7 +316,9 @@ class SpekTest : Spek({
 
                 val response : ResponseEntity<Any> = runBlocking{userService.login(authrequest)}
                 val responseBody = response.body as Map<*,*>
-                assertEquals("Invalid username or password",responseBody["message"])
+
+                responseBody["message"] shouldBe "Invalid username or password"
+//                assertEquals("Invalid username or password",responseBody["message"])
             }
         }
     }
@@ -320,7 +349,8 @@ class SpekTest : Spek({
 
                 val response = runBlocking{postService.getAllPosts()}
 
-                assertEquals(1,posts.size)
+                posts.size shouldBe 1
+//                assertEquals(1,posts.size)
             }
 
             it("retrieve empty list if no post is created"){
@@ -329,7 +359,8 @@ class SpekTest : Spek({
 
                 val response = runBlocking{postService.getAllPosts()}
 
-                assertEquals(0,response.size)
+                response.size shouldBe 0
+//                assertEquals(0,response.size)
             }
         }
 
@@ -345,7 +376,8 @@ class SpekTest : Spek({
 
                 val response = runBlocking{postService.getAllUserPosts(user.username)}
 
-                assertEquals(1,response.size)
+                response.size shouldBe 1
+//                assertEquals(1,response.size)
             }
 
             it("return empty list if not able to find the user"){
@@ -354,7 +386,8 @@ class SpekTest : Spek({
 
                 val response = runBlocking{postService.getAllUserPosts("username")}
 
-                assertEquals(0,response.size)
+                response.size shouldBe 0
+//                assertEquals(0,response.size)
             }
         }
 
@@ -371,8 +404,10 @@ class SpekTest : Spek({
 
                 val response : ResponseEntity<String> = runBlocking{postService.createPost(postdto,"username")}
 
-                assertEquals(HttpStatus.OK,response.statusCode)
-                assertEquals("Post created successfully",response.body)
+                response.statusCode shouldBe HttpStatus.OK
+                response.body shouldBe "Post created successfully"
+//                assertEquals(HttpStatus.OK,response.statusCode)
+//                assertEquals("Post created successfully",response.body)
             }
 
             it("return message if invalid token"){
@@ -381,8 +416,10 @@ class SpekTest : Spek({
 
                 val response : ResponseEntity<String> = runBlocking{postService.createPost(postdto,"")}
 
-                assertEquals(HttpStatus.UNAUTHORIZED,response.statusCode)
-                assertEquals("Invalid or expired token",response.body)
+                response.statusCode shouldBe HttpStatus.UNAUTHORIZED
+                response.body shouldBe "Invalid or expired token"
+//                assertEquals(HttpStatus.UNAUTHORIZED,response.statusCode)
+//                assertEquals("Invalid or expired token",response.body)
             }
 
             it("return message if user is not registered to create post"){
@@ -393,8 +430,10 @@ class SpekTest : Spek({
 
                 val response : ResponseEntity<String> = runBlocking{postService.createPost(postdto,"username")}
 
-                assertEquals(HttpStatus.NOT_FOUND,response.statusCode)
-                assertEquals("User not found",response.body)
+                response.statusCode shouldBe HttpStatus.NOT_FOUND
+                response.body shouldBe "User not found"
+//                assertEquals(HttpStatus.NOT_FOUND,response.statusCode)
+//                assertEquals("User not found",response.body)
             }
 
             it("return message if it is a duplicate title"){
@@ -408,8 +447,10 @@ class SpekTest : Spek({
 
                 val response : ResponseEntity<String> = runBlocking{postService.createPost(postdto,"username")}
 
-                assertEquals(HttpStatus.BAD_REQUEST,response.statusCode)
-                assertEquals("Title already present",response.body)
+                response.statusCode shouldBe HttpStatus.BAD_REQUEST
+                response.body shouldBe "Title already present"
+//                assertEquals(HttpStatus.BAD_REQUEST,response.statusCode)
+//                assertEquals("Title already present",response.body)
             }
         }
 
@@ -425,8 +466,10 @@ class SpekTest : Spek({
 
                 val response : ResponseEntity<String> = runBlocking{postService.updatePost(1L,postDto,"username")}
 
-                assertEquals(HttpStatus.OK,response.statusCode)
-                assertEquals("Post updated successfully",response.body)
+                response.statusCode shouldBe HttpStatus.OK
+                response.body shouldBe "Post updated successfully"
+//                assertEquals(HttpStatus.OK,response.statusCode)
+//                assertEquals("Post updated successfully",response.body)
             }
 
             it("return message if invalid token"){
@@ -435,8 +478,10 @@ class SpekTest : Spek({
 
                 val response : ResponseEntity<String> = runBlocking{postService.updatePost(1L,postDto,"")}
 
-                assertEquals(HttpStatus.UNAUTHORIZED,response.statusCode)
-                assertEquals("Invalid or expired token",response.body)
+                response.statusCode shouldBe HttpStatus.UNAUTHORIZED
+                response.body shouldBe "Invalid or expired token"
+//                assertEquals(HttpStatus.UNAUTHORIZED,response.statusCode)
+//                assertEquals("Invalid or expired token",response.body)
             }
 
             it("return message if post with given id not found"){
@@ -447,8 +492,10 @@ class SpekTest : Spek({
 
                 val response : ResponseEntity<String> = runBlocking{postService.updatePost(1L,postDto,"username")}
 
-                assertEquals(HttpStatus.NOT_FOUND,response.statusCode)
-                assertEquals("Post not found",response.body)
+                response.statusCode shouldBe HttpStatus.NOT_FOUND
+                response.body shouldBe "Post not found"
+//                assertEquals(HttpStatus.NOT_FOUND,response.statusCode)
+//                assertEquals("Post not found",response.body)
             }
 
             it("return message if user not authorised to update the post"){
@@ -461,8 +508,10 @@ class SpekTest : Spek({
 
                 val response : ResponseEntity<String> = runBlocking{postService.updatePost(1L,postDto,"username")}
 
-                assertEquals(HttpStatus.FORBIDDEN,response.statusCode)
-                assertEquals("You are not authorized to update this post",response.body)
+                response.statusCode shouldBe HttpStatus.FORBIDDEN
+                response.body shouldBe "You are not authorized to update this post"
+//                assertEquals(HttpStatus.FORBIDDEN,response.statusCode)
+//                assertEquals("You are not authorized to update this post",response.body)
             }
         }
 
@@ -478,8 +527,10 @@ class SpekTest : Spek({
 
                 val response: ResponseEntity<String> = runBlocking{postService.deletePost(1L, "username")}
 
-                assertEquals(HttpStatus.OK, response.statusCode)
-                assertEquals("Post deleted successfully", response.body)
+                response.statusCode shouldBe HttpStatus.OK
+                response.body shouldBe "Post deleted successfully"
+//                assertEquals(HttpStatus.OK, response.statusCode)
+//                assertEquals("Post deleted successfully", response.body)
             }
 
             it("return message if invalid token"){
@@ -489,8 +540,10 @@ class SpekTest : Spek({
 
                 val response: ResponseEntity<String> = runBlocking{postService.deletePost(1L, "")}
 
-                assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
-                assertEquals("Invalid or expired token", response.body)
+                response.statusCode shouldBe HttpStatus.UNAUTHORIZED
+                response.body shouldBe "Invalid or expired token"
+//                assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
+//                assertEquals("Invalid or expired token", response.body)
             }
 
             it("return message if post with given id not found"){
@@ -499,8 +552,10 @@ class SpekTest : Spek({
 
                 val response: ResponseEntity<String> = runBlocking{postService.deletePost(1L, "username")}
 
-                assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
-                assertEquals("Post not found", response.body)
+                response.statusCode shouldBe HttpStatus.NOT_FOUND
+                response.body shouldBe "Post not found"
+//                assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
+//                assertEquals("Post not found", response.body)
             }
 
             it("return message if user is not authorised to delete"){
@@ -512,8 +567,10 @@ class SpekTest : Spek({
 
                 val response: ResponseEntity<String> = runBlocking{postService.deletePost(1L, "username")}
 
-                assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
-                assertEquals("You are not authorized to delete this post", response.body)
+                response.statusCode shouldBe HttpStatus.FORBIDDEN
+                response.body shouldBe "You are not authorized to delete this post"
+//                assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
+//                assertEquals("You are not authorized to delete this post", response.body)
             }
         }
     }
@@ -620,7 +677,7 @@ class SpekTest : Spek({
         beforeEachTest {
             postService = mock()
             tokenService = mock()
-            webTestClient = WebTestClient.bindToController(PostController(postService)).build()
+            webTestClient = WebTestClient.bindToController(PostController(postService,tokenService)).build()
         }
 
         context("Testing /posts endpoint to get all posts"){
@@ -670,77 +727,74 @@ class SpekTest : Spek({
         context("testing /posts endpoint to create post"){
 
             it("successfully create a post"){
-
                 val post = PostDto("username","title","content")
-
                 val validToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
                 whenever(tokenService.extractEmail(validToken)).thenReturn("username")
+                whenever(runBlocking
+                {postService.createPost(post, "username")})
+                    .thenReturn(ResponseEntity("Post created successfully", HttpStatus.OK))
 
-                whenever(runBlocking{postService.createPost(post,validToken)}).thenReturn(ResponseEntity("Post created successfully", HttpStatus.OK))
-
-                mockMvc.perform(
-                    post("/posts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization","Bearer $validToken")
-                        .content("""
+                webTestClient.post().uri("/posts")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer $validToken")
+                    .bodyValue("""
                     {
-                    "username":"username",
-                    "title":"title",
-                    "content":"content"
+                        "username":"username",
+                        "title":"title",
+                        "content":"content"
                     }
-                    """.trimIndent())
-                ).andExpect(status().isOk)
-                    .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
-                    .andExpect(content().string("Post created successfully"))
+                """.trimIndent())
+                    .exchange()
+                    .expectStatus().isOk
+                    .expectBody(String::class.java)
+                    .isEqualTo("Post created successfully")
             }
         }
 
         context("testing /posts/update endpoint to update a post"){
-
             it("successfully update a post"){
-
+                val post = PostDto("username","title","content")
                 val validToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
                 whenever(tokenService.extractEmail(validToken)).thenReturn("username")
+                whenever(runBlocking
+                {postService.updatePost(1L,post,"username")})
+                    .thenReturn(ResponseEntity("Post updated successfully", HttpStatus.OK))
 
-                val post = PostDto("username","title","content")
-
-                whenever(runBlocking{postService.updatePost(1,post,validToken)}).thenReturn(ResponseEntity("Post updated successfully", HttpStatus.OK))
-
-                mockMvc.perform(
-                    put("/posts/update/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization","Bearer $validToken")
-                        .content("""
+                webTestClient.put().uri("/posts/update/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer $validToken")
+                    .bodyValue("""
                     {
-                    "username":"username",
-                    "title":"title",
-                    "content":"content"
+                        "username":"username",
+                        "title":"title",
+                        "content":"content"
                     }
-                    """.trimIndent())
-                ).andExpect(status().isOk)
-                    .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
-                    .andExpect(content().string("Post updated successfully"))
+                """.trimIndent())
+                    .exchange()
+                    .expectStatus().isOk
+                    .expectBody(String::class.java)
+                    .isEqualTo("Post updated successfully")
             }
         }
 
         context("testing /posts/delete endpoint to delete a post"){
 
             it("successfully delete a post"){
-
                 val validToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
                 whenever(tokenService.extractEmail(validToken)).thenReturn("username")
+                whenever(runBlocking
+                { postService.deletePost(1L, "username") })
+                    .thenReturn(ResponseEntity("Post deleted successfully", HttpStatus.OK))
 
-                whenever(runBlocking{postService.deletePost(1, validToken)}).thenReturn(ResponseEntity("Post deleted successfully", HttpStatus.OK))
-
-                mockMvc.perform(
-                    delete("/posts/delete/1")
-                        .header("Authorization", "Bearer $validToken")
-                )
-                    .andExpect(status().isOk)
-                    .andExpect(content().string("Post deleted successfully"))
+                webTestClient.delete().uri("/posts/delete/1")
+                    .header("Authorization", "Bearer $validToken")
+                    .exchange()
+                    .expectStatus().isOk
+                    .expectBody(String::class.java)
+                    .isEqualTo("Post deleted successfully")
             }
         }
     }

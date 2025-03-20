@@ -34,8 +34,8 @@ class PostService(
         return emptyList()
     }
 
-    suspend fun createPost(post: PostDto, username: String): ResponseEntity<String> {
-        if (username.isBlank()) {
+    suspend fun createPost(post: PostDto, username: String?): ResponseEntity<String> {
+        if (username!!.isBlank()) {
             println("Invalid or expired token for username:$username")
             return ResponseEntity("Invalid or expired token", HttpStatus.UNAUTHORIZED)
         }
@@ -66,8 +66,8 @@ class PostService(
         return ResponseEntity("Post created successfully", HttpStatus.OK)
     }
 
-    suspend fun updatePost(id: Long, post: PostDto, username: String): ResponseEntity<String> {
-        if (username.isBlank()) {
+    suspend fun updatePost(id: Long, post: PostDto, username: String?): ResponseEntity<String> {
+        if (username!!.isBlank()) {
             println("Invalid or expired token for username:$username")
             return ResponseEntity("Invalid or expired token", HttpStatus.UNAUTHORIZED)
         }
@@ -91,8 +91,8 @@ class PostService(
         }
     }
 
-    suspend fun deletePost(id: Long, username: String): ResponseEntity<String> {
-        if (username.isBlank()) {
+    suspend fun deletePost(id: Long, username: String?): ResponseEntity<String> {
+        if (username!!.isBlank()) {
             println("Invalid or expired token for username:$username")
             return ResponseEntity("Invalid or expired token", HttpStatus.UNAUTHORIZED)
         }
